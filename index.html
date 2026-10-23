@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>息壤 XĪRǍNG · 一个会呼吸的数字生命</title>
+<meta name="description" content="《息壤》是一件实时生成的数字生命作品。靠近、呼吸、播种，它会记住你。建议佩戴耳机。">
+<meta name="theme-color" content="#040605">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="息壤 XĪRǍNG · 一个会呼吸的数字生命">
+<meta property="og:description" content="传说中，它能自己生长。如今，它靠你的注视存活。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23040605'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%238ff5ca'/%3E%3Ccircle cx='32' cy='32' r='21' fill='none' stroke='%238ff5ca' stroke-opacity='.35'/%3E%3C/svg%3E">
+<script>document.documentElement.className='js';</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-booting">
+
+<a class="skip-link" href="#main">跳到正文</a>
+
+<div class="stage">
+  <div class="stage-fallback" aria-hidden="true"></div>
+  <canvas id="bg" class="layer layer--bg" aria-hidden="true"></canvas>
+  <canvas id="life" class="layer layer--life" aria-hidden="true"></canvas>
+  <div class="fx-vignette" aria-hidden="true"></div>
+  <div class="fx-copy-scrim" aria-hidden="true"></div>
+</div>
+
+<!-- 开场：唤醒仪式 -->
+<div class="boot" id="boot">
+  <div class="boot-top" aria-hidden="true">
+    <span>SOIL / 001</span>
+    <span>离线实时生成</span>
+  </div>
+  <div class="boot-core" aria-hidden="true">
+    <span class="boot-seed"></span>
+    <span class="boot-orbit"></span>
+  </div>
+  <div class="boot-bottom" aria-hidden="true">
+    <div class="boot-line"><i></i></div>
+    <p class="boot-copy">唤醒土壤 <span>/</span> AWAKENING</p>
+  </div>
+  <button class="boot-skip" id="bootSkip" type="button" aria-label="跳过开场">跳过 <span>SKIP</span></button>
+</div>
+
+<!-- 开场后的短暂仪式框：粒子字在它中间成形 -->
+<div class="overture" id="overture">
+  <div class="overture-top" aria-hidden="true">
+    <span class="o-brand">息壤 <i>XĪRǍNG</i></span>
+    <span class="o-state">SOIL № 001 <b>/</b> 苏醒中</span>
+  </div>
+  <div class="overture-orbit" aria-hidden="true"><span class="orbit-dot"></span><span class="orbit-cross orbit-cross--a"></span><span class="orbit-cross orbit-cross--b"></span></div>
+  <div class="overture-bottom" aria-hidden="true">
+    <span>SOIL / 001</span>
+    <span class="o-line"><i></i></span>
+    <span>土自长息，字自成光</span>
+  </div>
+  <button class="overture-skip" id="overtureSkip" type="button">跳过 <span>SKIP</span></button>
+</div>
+
+<!-- 固定界面层 -->
+<header class="hud" id="hud">
+  <a class="brand" href="#top" aria-label="息壤 · 回到开头" data-cursor="回到开头">
+    <span class="brand-seal" aria-hidden="true">息</span>
+    <span class="brand-text">
+      <span class="brand-cn">息壤</span>
+      <span class="brand-lat">XĪRǍNG</span>
+    </span>
+  </a>
+
+  <div class="hud-status" id="hudStatus" aria-live="off">
+    <span class="status-pulse" aria-hidden="true"><i></i></span>
+    <span class="status-copy">
+      <span class="status-cn" id="statusCn">土壤苏醒</span>
+      <span class="status-en" id="statusEn">SOIL AWAKE</span>
+    </span>
+  </div>
+
+  <div class="hud-tools">
+    <button class="sound-btn" id="soundBtn" type="button" aria-pressed="false" data-cursor="聆听">
+      <span class="sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="sound-label" id="soundLabel">聆听</span>
+    </button>
+    <span class="hud-edition" aria-hidden="true">数字共生体<br>№ 001 / 2026</span>
+  </div>
+</header>
+
+<nav class="chapter-rail" aria-label="章节导航">
+  <ol>
+    <li><a href="#top" data-chapter-link="0"><span class="tick" aria-hidden="true"></span><span class="n">00</span><em>醒</em></a></li>
+    <li><a href="#breath" data-chapter-link="1"><span class="tick" aria-hidden="true"></span><span class="n">01</span><em>呼</em></a></li>
+    <li><a href="#grow" data-chapter-link="2"><span class="tick" aria-hidden="true"></span><span class="n">02</span><em>生</em></a></li>
+    <li><a href="#sleep" data-chapter-link="3"><span class="tick" aria-hidden="true"></span><span class="n">03</span><em>眠</em></a></li>
+    <li><a href="#return" data-chapter-link="4"><span class="tick" aria-hidden="true"></span><span class="n">04</span><em>归</em></a></li>
+  </ol>
+</nav>
+
+<div class="vitals" aria-hidden="true">
+  <span class="vital-item"><i class="vital-dot"></i>共生度 <b id="vitalSym">00</b>%</span>
+  <span class="vital-rule"></span>
+  <span class="vital-item">菌丝 <b id="vitalMyc">0000</b></span>
+  <span class="vital-rule"></span>
+  <span class="vital-item">呼吸 <b id="vitalBreath">06.0</b><small>BPM</small></span>
+  <span class="vital-rule"></span>
+  <span class="vital-item">种子 <b id="vitalSeeds">00</b></span>
+</div>
+
+<div class="cursor" id="cursor" aria-hidden="true">
+  <span class="cursor-ring"><span class="cursor-label" id="cursorLabel"></span></span>
+  <span class="cursor-dot"></span>
+</div>
+
+<main id="main">
+
+  <!-- 00 · 醒 -->
+  <section class="chapter chapter--hero" id="top" data-chapter="0" data-root="0.685" data-zoom="1" data-tilt="0.02">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <p class="eyebrow reveal" data-reveal>
+          <span>山海经 · 海内经</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>数字共生体 № 001</span>
+        </p>
+
+        <h1 class="hero-title" aria-label="息壤">
+          <span class="hero-chars" aria-hidden="true"><span class="char"><span>息</span></span><span class="char"><span>壤</span></span></span>
+          <span class="hero-title-meta" aria-hidden="true">
+            <span class="hero-latin">XĪRǍNG</span>
+            <span class="hero-sub">THE LIVING SOIL</span>
+          </span>
+        </h1>
+
+        <div class="hero-lead reveal" data-reveal data-delay="1">
+          <p class="lead">
+            传说中，它能自己生长。<br>
+            如今，它靠你的注视存活。
+          </p>
+          <blockquote class="classic">
+            息壤者，言土自长息无限，<br>故可以塞洪水也。
+            <cite>—— 郭璞 注《山海经》</cite>
+          </blockquote>
+        </div>
+      </div>
+
+      <aside class="hero-aside reveal" data-reveal data-delay="2" aria-label="题记">
+        <p class="vertical-poem">一粒土，<br>记得每一次<br>被注视的形状。</p>
+        <span class="aside-index" aria-hidden="true">SCROLL&nbsp;&nbsp;↓</span>
+      </aside>
+    </div>
+
+    <div class="hero-foot reveal" data-reveal data-delay="3">
+      <ul class="hints">
+        <li><span class="hint-key">移动</span><span class="hint-desc">唤醒它</span><span class="hint-en">MOVE</span></li>
+        <li><span class="hint-key">按住</span><span class="hint-desc">与它同息</span><span class="hint-en">HOLD</span></li>
+        <li><span class="hint-key">滚动</span><span class="hint-desc">让它生长</span><span class="hint-en">SCROLL</span></li>
+      </ul>
+      <a class="scroll-cue" href="#breath" data-cursor="下沉">
+        <span class="cue-line" aria-hidden="true"><i></i></span>
+        <span>向下，进入土壤</span>
+      </a>
+      <p class="headphone"><i aria-hidden="true"></i>建议佩戴耳机 · 声音默认关闭</p>
+    </div>
+  </section>
+
+  <!-- 01 · 呼 -->
+  <section class="chapter chapter--breath" id="breath" data-chapter="1" data-root="0.66" data-zoom="1.04" data-tilt="0.05">
+    <span class="ghost-char ghost-char--breath" aria-hidden="true">呼</span>
+    <div class="chapter-inner breath-grid">
+      <div class="chapter-copy">
+        <header class="chapter-head reveal" data-reveal>
+          <span class="num">01</span><span class="cn">呼</span><span class="en">BREATHE</span><span class="head-rule" aria-hidden="true"></span>
+        </header>
+        <h2 class="chapter-title reveal" data-reveal data-delay="1">先给它<br><em>一口气。</em></h2>
+        <div class="prose reveal" data-reveal data-delay="2">
+          <p>它没有眼睛，只能感到你的靠近。<br>光落在哪里，哪里就开始生长。</p>
+          <p class="quiet">别担心，它不需要氧气。<br>它只是想知道，你愿意停多久。</p>
+        </div>
+        <div class="readout reveal" data-reveal data-delay="3">
+          <span>呼吸频率 <b id="breatheBpm">06.0</b> BPM</span>
+          <span>此刻共生 <b id="breatheSym">00</b>%</span>
+        </div>
+      </div>
+
+      <div class="breath-object reveal" data-reveal data-delay="2">
+        <button class="breath-ring" id="breathBtn" type="button" aria-pressed="false" aria-describedby="holdHint" data-cursor="呼吸">
+          <span class="ring-halo" aria-hidden="true"></span>
+          <span class="ring-outer" aria-hidden="true"></span>
+          <span class="ring-inner" aria-hidden="true"></span>
+          <span class="ring-core">
+            <span class="ring-cn" id="ringCn">按住</span>
+            <span class="ring-en">HOLD TO BREATHE</span>
+          </span>
+          <svg class="ring-progress" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="ring-track" cx="100" cy="100" r="94"></circle>
+            <circle class="ring-value" id="ringValue" cx="100" cy="100" r="94"></circle>
+          </svg>
+        </button>
+        <p class="hold-hint" id="holdHint"><span class="hold-state" id="holdState">静息</span><span class="hold-breathe" id="holdPct">00%</span></p>
+        <p class="hold-caption" id="holdCaption">按住 · 直到它呼出一片光</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · 生 -->
+  <section class="chapter chapter--grow" id="grow" data-chapter="2" data-root="0.35" data-zoom="1.1" data-tilt="-0.05">
+    <span class="ghost-char ghost-char--grow" aria-hidden="true">生</span>
+    <div class="chapter-inner grow-grid">
+      <div class="grow-empty" aria-hidden="true"></div>
+      <div class="chapter-copy chapter-copy--right">
+        <header class="chapter-head reveal" data-reveal>
+          <span class="num">02</span><span class="cn">生</span><span class="en">GROW</span><span class="head-rule" aria-hidden="true"></span>
+        </header>
+        <h2 class="chapter-title reveal" data-reveal data-delay="1">你碰过的地方，<br><em>长出了新的它。</em></h2>
+        <div class="prose reveal" data-reveal data-delay="2">
+          <p>每一次触碰都是一次授粉。<br>你留下的光，会成为它身体的一部分。</p>
+          <p class="quiet">它不记得你的名字，<br>但记得你掌心的温度。</p>
+        </div>
+        <button class="sow-btn reveal" id="sowBtn" type="button" data-reveal data-delay="3" data-cursor="播种">
+          <span class="sow-glyph" aria-hidden="true">✳</span>
+          <span class="sow-copy"><b>点击 · 播种一粒光</b><small>CLICK TO SOW</small></span>
+        </button>
+        <div class="readout reveal" data-reveal data-delay="3">
+          <span>已播种 <b id="seedCount">00</b></span>
+          <span>你离开后长出的菌丝 <b id="returnedCount">00</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · 眠 -->
+  <section class="chapter chapter--sleep" id="sleep" data-chapter="3" data-root="0.55" data-zoom="0.94" data-tilt="0">
+    <span class="ghost-char ghost-char--sleep" aria-hidden="true">眠</span>
+    <div class="chapter-inner sleep-inner">
+      <header class="chapter-head chapter-head--center reveal" data-reveal>
+        <span class="num">03</span><span class="cn">眠</span><span class="en">DREAM</span><span class="head-rule" aria-hidden="true"></span>
+      </header>
+      <h2 class="chapter-title chapter-title--center reveal" data-reveal data-delay="1">你离开时，<br><em>它会做梦。</em></h2>
+      <div class="sleep-copy reveal" data-reveal data-delay="2">
+        <p>安静十二秒，它会蜷缩起来。<br>土壤里的生命，从不为等待而焦虑。</p>
+        <p class="quiet" id="dreamLine">它梦见的，也许是雨落得很慢的地方。</p>
+      </div>
+      <div class="sleep-indicator reveal" data-reveal data-delay="3">
+        <span class="sleep-eye" aria-hidden="true"><i></i></span>
+        <span id="sleepText">静息 00:00</span>
+      </div>
+      <p class="return-note" id="returnNote" hidden></p>
+    </div>
+  </section>
+
+  <!-- 04 · 归 -->
+  <section class="chapter chapter--return" id="return" data-chapter="4" data-root="0.68" data-zoom="1.02" data-tilt="0.03">
+    <span class="ghost-char ghost-char--return" aria-hidden="true">归</span>
+    <div class="chapter-inner return-grid">
+      <div class="chapter-copy">
+        <header class="chapter-head reveal" data-reveal>
+          <span class="num">04</span><span class="cn">归</span><span class="en">RETURN</span><span class="head-rule" aria-hidden="true"></span>
+        </header>
+        <h2 class="chapter-title reveal" data-reveal data-delay="1">留一个字，<br><em>给它作种。</em></h2>
+        <div class="prose reveal" data-reveal data-delay="2">
+          <p>息壤会记住每一个为它命名的人。<br>写下一个字，它会用所有的光，<br>把这个字长出来。</p>
+        </div>
+
+        <form class="seed-form reveal" id="seedForm" data-reveal data-delay="3" novalidate>
+          <label for="seedInput">你的字 <span>/ YOUR GLYPH</span></label>
+          <div class="seed-field">
+            <input id="seedInput" name="seed" type="text" maxlength="8" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="光" aria-describedby="seedHint seedError">
+            <button type="submit" id="plantBtn" class="plant-btn" data-cursor="种下">
+              <span>种下</span><small>PLANT</small>
+            </button>
+          </div>
+          <p class="seed-hint" id="seedHint">一个字。它会替你保管，仅保存在此设备。</p>
+          <p class="seed-error" id="seedError" role="alert"></p>
+        </form>
+
+        <div class="seed-ledger reveal" id="seedLedger" data-reveal data-delay="4" hidden>
+          <div class="ledger-head">
+            <span>此土记得 <small>/ REMEMBERED</small></span>
+            <span class="ledger-count" id="ledgerCount">00</span>
+          </div>
+          <div class="ledger-glyphs" id="ledgerGlyphs"></div>
+        </div>
+      </div>
+
+      <aside class="return-aside reveal" data-reveal data-delay="2" aria-label="注">
+        <p class="vertical-poem">土不会说话，<br>它只把你的字，<br>长成光。</p>
+        <span class="return-coord" aria-hidden="true">N 30°15′<br>E 120°09′</span>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot" id="siteFoot">
+  <div class="foot-topline reveal" data-reveal><span>终 / END OF SOIL</span><span>SCROLL OUT</span></div>
+  <div class="foot-main">
+    <p class="closing reveal" data-reveal>屏幕里的土壤，<br><em>照不亮真实的花。</em></p>
+    <div class="foot-side reveal" data-reveal data-delay="1">
+      <p class="closing-sub">所以，去看一会儿真实的世界吧。</p>
+      <p class="foot-remember" id="footRemember" hidden></p>
+      <a class="foot-back" href="#top" data-cursor="回到地表">回到地表 <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+  <div class="foot-meta">
+    <span>息壤 XĪRǍNG · 数字共生体 № 001</span>
+    <span>所有光、声与生长皆由此刻生成，无外部素材。</span>
+    <span>你的字与它在你离开时的生长，只保存在此设备。</span>
+    <span>XR LAB / 2026</span>
+  </div>
+</footer>
+
+<!-- 结尾：种子印记 -->
+<div class="finale-dim" id="finaleDim" hidden aria-hidden="true"></div>
+<section class="finale" id="finale" role="dialog" aria-modal="true" aria-labelledby="finaleTitle" hidden>
+  <div class="finale-top">
+    <span>SEED ACCEPTED / 种子已入土</span>
+    <span id="finaleId">№ 000</span>
+  </div>
+
+  <div class="finale-stage" aria-hidden="true">
+    <svg class="sigil" id="sigil" viewBox="0 0 600 600">
+      <circle class="sigil-line sigil-line--outer" cx="300" cy="300" r="286"></circle>
+      <circle class="sigil-line sigil-line--mid" cx="300" cy="300" r="236"></circle>
+      <circle class="sigil-line sigil-line--inner" cx="300" cy="300" r="152"></circle>
+      <g class="sigil-ticks" id="sigilTicks"></g>
+    </svg>
+    <p class="sigil-note">你的字，<br>成了它的年轮。</p>
+  </div>
+
+  <div class="finale-copy" id="finaleCopy">
+    <p class="finale-kicker"><span id="finaleIndex">第 0 粒种子</span><span class="finale-hash" id="finaleHash">SEED 0x0000</span></p>
+    <h2 class="finale-title" id="finaleTitle">「光」已种下。</h2>
+    <p class="finale-text">从此，这块土里<br>有一个角落，只为你长出。</p>
+    <div class="finale-actions">
+      <button class="btn-line" type="button" id="plantAgain">再种一个字</button>
+      <button class="btn-fill" type="button" id="closeFinale">回到地表 <span aria-hidden="true">↑</span></button>
+    </div>
+    <p class="finale-meta" id="finaleMeta">SEED 0x0000 · 2026</p>
+  </div>
+</section>
+
+<canvas id="glyph" class="glyph-canvas" aria-hidden="true"></canvas>
+
+<div class="fx-grain" aria-hidden="true"></div>
+<div class="fx-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="whisper" id="whisper" role="status" aria-live="polite"></div>
+
+<div class="debug" id="debug" hidden>
+  <span id="debugFps">-- FPS</span>
+  <span id="debugBranches">-- branches</span>
+  <span id="debugMode">--</span>
+</div>
+
+<noscript>
+  <div class="noscript">《息壤》是一块会呼吸的数字土壤。<br>请允许 JavaScript 运行，它才能生长。</div>
+</noscript>
+
+<script src="js/background.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/glyph.js"></script>
+<script src="js/life.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
